@@ -30,6 +30,8 @@ public class RelativeTouchContext implements TouchContext {
     private final View targetView;
     private final PreferenceConfiguration prefConfig;
     private final Handler handler;
+    private final float sensitivityX;
+    private final float sensitivityY;
 
     private final Runnable dragTimerRunnable = new Runnable() {
         @Override
@@ -95,6 +97,14 @@ public class RelativeTouchContext implements TouchContext {
                                 int referenceWidth, int referenceHeight,
                                 View view, PreferenceConfiguration prefConfig)
     {
+        this(conn, actionIndex, referenceWidth, referenceHeight, view, prefConfig, 100, 100);
+    }
+
+    public RelativeTouchContext(NvConnection conn, int actionIndex,
+                                int referenceWidth, int referenceHeight,
+                                View view, PreferenceConfiguration prefConfig,
+                                float sensitivityX, float sensitivityY)
+    {
         this.conn = conn;
         this.actionIndex = actionIndex;
         this.referenceWidth = referenceWidth;
@@ -102,6 +112,8 @@ public class RelativeTouchContext implements TouchContext {
         this.targetView = view;
         this.prefConfig = prefConfig;
         this.handler = new Handler(Looper.getMainLooper());
+        this.sensitivityX = sensitivityX;
+        this.sensitivityY = sensitivityY;
     }
 
     @Override
@@ -279,7 +291,7 @@ public class RelativeTouchContext implements TouchContext {
                                 (short) targetView.getHeight());
                     }
                     else {
-                        conn.sendMouseMove((short) deltaX, (short) deltaY);
+                        conn.sendMouseMove((short)(deltaX * sensitivityX * 0.01f), (short)(deltaY * sensitivityY * 0.01f));
                     }
                 }
 
