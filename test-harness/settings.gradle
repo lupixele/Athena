@@ -1,0 +1,4 @@
+// Standalone test-harness build — does NOT depend on the Android :app module.
+// Run from this directory: gradlew test
+// Requires only JDK 17+. No Android SDK, no NDK.
+rootProject.name = 'athena-test-harness'
