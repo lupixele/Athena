@@ -44,9 +44,10 @@
 
 | Feature | Files Changed | Status | Notes |
 |---|---|---|---|
-| Configurable touch button mapping | `AbsoluteTouchContext.java` | ✅ Ported | Backward-compat default constructor; `buttonPrimary`/`buttonSecondary` fields. Upstream `Game.java` unaffected. |
-| Trackpad sensitivity scaling | `RelativeTouchContext.java` | ✅ Ported | Added `sensitivityX`/`sensitivityY` constructor params (default 100 = 1.0x). Applies `sensitivityX * 0.01f` scaling to `sendMouseMove`. Upstream callers unaffected. |
-| TrackpadContext class | `TrackpadContext.java` (new) | ✅ Ported | Full Artemis TrackpadContext: multi-finger tap, 2-finger scroll, flick-momentum, drag, 3-finger middle-click, configurable swap-axis and per-axis sensitivity. **Not yet wired into Game.java.** |
+| Configurable touch button mapping | `AbsoluteTouchContext.java` | ✅ Ported & Tested | Backward-compat default constructor; `buttonPrimary`/`buttonSecondary` fields. Upstream `Game.java` unaffected. |
+| Trackpad sensitivity scaling | `RelativeTouchContext.java` | ✅ Ported & Tested | Added `sensitivityX`/`sensitivityY` constructor params (default 100 = 1.0x). Applies `sensitivityX * 0.01f` scaling to `sendMouseMove`. Upstream callers unaffected. |
+| TrackpadContext class | `TrackpadContext.java` (new) | ✅ Ported & Tested | Full Artemis TrackpadContext: multi-finger tap, 2-finger scroll, flick-momentum, drag, 3-finger middle-click, configurable swap-axis and per-axis sensitivity. 55 automated regression tests pass in standalone test harness. **Not yet wired into Game.java.** |
+| Standalone JVM regression test harness | `test-harness/` (new) | ✅ Implemented | 55 unit tests covering defaults, button mapping, sensitivity, cancellation, and momentum physics. No Android SDK required. |
 
 ---
 
