@@ -1,12 +1,7 @@
 // Pure-JVM test harness for Athena touch/trackpad logic.
-// No Android SDK required. Tests run on any JDK 17+ via Gradle.
+// No Android SDK required. Compiles ACTUAL production TouchContext,
+// AbsoluteTouchContext, RelativeTouchContext, TrackpadContext classes.
 //
-// Usage (from this directory):
-//   .\gradlew.bat test
-//   .\gradlew.bat test --tests "com.limelight.test.*"
-//
-// This is a STANDALONE Gradle project — do NOT include it in the Android
-// root settings.gradle. It has its own settings.gradle.
 plugins {
     id 'java'
 }
@@ -18,6 +13,22 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+}
+
+tasks.named('compileJava') {
+    source = fileTree('src/main/java') + fileTree('../app/src/main/java') {
+        include 'com/limelight/binding/input/touch/**'
+        include 'com/limelight/LimeLog.java'
+        include 'com/limelight/nvstream/input/MouseButtonPacket.java'
+    }
 }
 
 dependencies {

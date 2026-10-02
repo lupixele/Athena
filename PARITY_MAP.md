@@ -44,10 +44,10 @@
 
 | Feature | Files Changed | Status | Notes |
 |---|---|---|---|
-| Configurable touch button mapping | `AbsoluteTouchContext.java` | ✅ Ported & Tested | Backward-compat default constructor; `buttonPrimary`/`buttonSecondary` fields. Upstream `Game.java` unaffected. |
-| Trackpad sensitivity scaling | `RelativeTouchContext.java` | ✅ Ported & Tested | Added `sensitivityX`/`sensitivityY` constructor params (default 100 = 1.0x). Applies `sensitivityX * 0.01f` scaling to `sendMouseMove`. Upstream callers unaffected. |
-| TrackpadContext class | `TrackpadContext.java` (new) | ✅ Ported & Tested | Full Artemis TrackpadContext: multi-finger tap, 2-finger scroll, flick-momentum, drag, 3-finger middle-click, configurable swap-axis and per-axis sensitivity. 55 automated regression tests pass in standalone test harness. **Not yet wired into Game.java.** |
-| Standalone JVM regression test harness | `test-harness/` (new) | ✅ Implemented | 55 unit tests covering defaults, button mapping, sensitivity, cancellation, and momentum physics. No Android SDK required. |
+| Configurable touch button mapping | `AbsoluteTouchContext.java` | ✅ Ported & Tested | Backward-compat default constructor; `buttonPrimary`/`buttonSecondary` fields. Upstream `Game.java` unaffected. Compiled and verified in test harness. |
+| Trackpad sensitivity scaling | `RelativeTouchContext.java` | ✅ Ported & Tested | Added `sensitivityX`/`sensitivityY` constructor params (default 100 = 1.0x). Applies `sensitivityX * 0.01f` scaling to `sendMouseMove`. Upstream callers unaffected. Compiled and verified in test harness. |
+| TrackpadContext class & cancellation bug fix | `TrackpadContext.java` | ✅ Ported, Hardened & Verified | Full Artemis TrackpadContext ported without BOM (`\uFEFF` encoding bug resolved). Upstream/Artemis cancellation bug fixed: held mouse buttons tracked independently via `pressedButtons`; `cancelTouch()` now idempotently releases held buttons, cancels timers, resets flicking, velocity, and delta state with zero stale timer leaks. Verified compiling real production source. |
+| Standalone JVM regression test harness | `test-harness/` | ✅ Implemented & Verifying Production Source | Standalone JVM test harness compiling ACTUAL production `TouchContext`, `AbsoluteTouchContext`, `RelativeTouchContext`, and `TrackpadContext` directly against pure-JVM stubs (`android.os.Handler`, `Looper`, `android.view.View`, `NvConnection`, `MouseButtonPacket`, `PreferenceConfiguration`). **Replaced previous fake mirror (`TrackpadLogicMirror`) with direct production bytecode execution.** All 19 production tests pass with deterministic virtual scheduler, owner-scoped handler cancellation on shared looper, pointer/scroll momentum regressions, and click release / scroll transition timer cancellation. |
 
 ---
 
