@@ -25,18 +25,26 @@
 
 ---
 
-## Build Environment Gap
+## Build Environment
 
-| Requirement | Available | Gap |
-|---|---|---|
-| NDK r29.0.14206865 | NDK 26.1.10909125 | ❌ Need NDK r29 |
-| compileSdk 37 / targetSdk 36 | android-34 | ❌ Need platform 37 |
-| Gradle 9.7.1 | Gradle 8.4 cached | ❌ Need Gradle 9.7.1 download |
-| Build-tools 34.0.0 | 34.0.0 | ✅ |
-| JDK 17 | JDK 17.0.20.1 | ✅ |
-| CMake 3.22.1 | 3.22.1 | ✅ |
+| Requirement | State on this machine |
+|---|---|
+| NDK r29.0.14206865 | ✅ Installed. Note: the directory previously existed as a 0-byte stub (`.installer/.installData` only), which made AGP fail with `CXX1101`; reinstalled with `sdkmanager 'ndk;29.0.14206865'`. The pin is required by `Application.mk` (`APP_SUPPORT_FLEXIBLE_PAGE_SIZES`, NDK r27+). |
+| compileSdk 37 / targetSdk 36 | ✅ `platforms;android-37.0` installed; `targetSdk` needs no separate platform |
+| Gradle 9.7.1 | ✅ Wrapper resolves and runs |
+| Build-tools | ✅ `build-tools;37.0.0` |
+| JDK 17 | ✅ 17.0.20.1 at `P:\Android\Java17\PFiles64\Microsoft\jdk-17.0.20.101-hotspot` |
+| CMake | Not used — the native build is `ndkBuild` (`app/src/main/jni/Android.mk`) |
+| `moonlight-common-c` submodule | ✅ Checked out at `874ac95` (`git submodule update --init --recursive`). It was uninitialised, which `ndk-build` reports as `No rule to make target .../AudioStream.c`. |
 
-**Real build is not feasible without SDK/Gradle downloads.** Patches are code-level verified only.
+**Verified build (2026-11-18):** `gradlew :app:assembleNonRootDebug` → BUILD SUCCESSFUL (1m 36s, 48 tasks).
+Artifact `app/build/outputs/apk/nonRoot/debug/app-nonRoot-debug.apk`, 16.9 MB, with
+`libmoonlight-core.so` for `arm64-v8a`, `armeabi-v7a`, `x86` and `x86_64`. The arm64 `LOAD` segments are
+`0x4000`-aligned, so 16 KB page support is really in the binary.
+
+`testNonRootDebugUnitTest` is `NO-SOURCE`: there is no `app/src/test` tree. The touch regression suite lives
+in the standalone `test-harness/` Gradle project and compiles the production classes directly; it was run
+separately on this machine — **19 tests, 0 failures** (constructors/defaults 5, cancellation 10, gestures 4).
 
 ---
 
@@ -47,7 +55,7 @@
 | Configurable touch button mapping | `AbsoluteTouchContext.java` | ✅ Ported & Tested | Backward-compat default constructor; `buttonPrimary`/`buttonSecondary` fields. Upstream `Game.java` unaffected. Compiled and verified in test harness. |
 | Trackpad sensitivity scaling | `RelativeTouchContext.java` | ✅ Ported & Tested | Added `sensitivityX`/`sensitivityY` constructor params (default 100 = 1.0x). Applies `sensitivityX * 0.01f` scaling to `sendMouseMove`. Upstream callers unaffected. Compiled and verified in test harness. |
 | TrackpadContext class & cancellation bug fix | `TrackpadContext.java` | ✅ Ported, Hardened & Verified | Full Artemis TrackpadContext ported without BOM (`\uFEFF` encoding bug resolved). Upstream/Artemis cancellation bug fixed: held mouse buttons tracked independently via `pressedButtons`; `cancelTouch()` now idempotently releases held buttons, cancels timers, resets flicking, velocity, and delta state with zero stale timer leaks. Verified compiling real production source. |
-| Standalone JVM regression test harness | `test-harness/` | ✅ Implemented & Verifying Production Source | Standalone JVM test harness compiling ACTUAL production `TouchContext`, `AbsoluteTouchContext`, `RelativeTouchContext`, and `TrackpadContext` directly against pure-JVM stubs (`android.os.Handler`, `Looper`, `android.view.View`, `NvConnection`, `MouseButtonPacket`, `PreferenceConfiguration`). **Replaced previous fake mirror (`TrackpadLogicMirror`) with direct production bytecode execution.** All 19 production tests pass with deterministic virtual scheduler, owner-scoped handler cancellation on shared looper, pointer/scroll momentum regressions, and click release / scroll transition timer cancellation. |
+| Standalone JVM regression test harness | `test-harness/` | ✅ Implemented & Passing (19/19 on 2026-11-18) | Standalone JVM test harness compiling ACTUAL production `TouchContext`, `AbsoluteTouchContext`, `RelativeTouchContext`, and `TrackpadContext` directly against pure-JVM stubs (`android.os.Handler`, `Looper`, `android.view.View`, `NvConnection`, `MouseButtonPacket`, `PreferenceConfiguration`). **Replaced previous fake mirror (`TrackpadLogicMirror`) with direct production bytecode execution.** All 19 production tests pass with deterministic virtual scheduler, owner-scoped handler cancellation on shared looper, pointer/scroll momentum regressions, and click release / scroll transition timer cancellation. It is a separate Gradle project rather than a module of the app build, so `:app:testNonRootDebugUnitTest` is `NO-SOURCE`; run it with `test-harness\gradlew.bat test`. |
 
 ---
 
@@ -120,7 +128,7 @@ Artemis uses `ClassicOldSong/moonlight-common-c` (commit `c9994368`). The upstre
 
 4. **[Large scope]** Port the on-screen keyboard controller (`KeyBoardController` tree). This is Artemis's largest feature delta and should be treated as a separate vertical slice after step 3.
 
-5. **[After SDK install]** Configure SDK manager to install NDK r29, platform-37, and let Gradle wrapper download 9.7.1. Then attempt a real `gradlew assembleNoroot` to verify compilation of the ported slice.
+5. **[Done 2026-11-18]** Toolchain installed and verified: NDK r29 (after reinstalling over a 0-byte stub), platform 37, build-tools 37.0.0, Gradle 9.7.1 wrapper, JDK 17, and the `moonlight-common-c` submodule. `gradlew :app:assembleNonRootDebug` succeeds and produces a 16.9 MB APK with four ABIs; the standalone harness passes 19/19. Still not done: installing the APK on a device, and any runtime behaviour.
 
 ---
 
